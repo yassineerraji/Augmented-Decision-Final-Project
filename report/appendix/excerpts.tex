@@ -1,0 +1,66 @@
+\begin{mdfile}{AgentDiscussion/step1/step1\_plan.md}{excerpt, plan: open points, as edited during review}
+\mdh{2}{5. Points for you to confirm or change}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Cost ratio C\_FN : C\_FP = 10 : 1.} Alternatives: about 30 : 1, which roughly corresponds to balancing the two classes, or a non-cost metric such as F1 or recall at a fixed precision.
+\item
+  \textbf{Test size of 20\%.} Moving to 25\% gives about 55 bankrupt firms in the test set instead of 44.
+\item
+  **EDA on the full dataset.
+\end{itemize}
+\end{mdfile}
+
+\begin{mdfile}{AgentDiscussion/step3/step3\_plan.md}{excerpt, plan: decisions recorded after review}
+\mdh{2}{6. Points for you to confirm or change}
+
+\textbf{Decided (you approved the recommendations):}
+
+\begin{itemize}
+\tightlist
+\item
+  The costs enter through the threshold.
+\item
+  The grid stays as listed in decision 2.
+\item
+  The agreed rule stays as it is, with no tie-breaker for fewer variables.
+\end{itemize}
+
+The original points are kept below for reference.
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{How costs enter:} through the threshold (recommended), or through class weights.
+\item
+  \textbf{The grid in decision 2.}
+\item
+  \textbf{Keeping the agreed rule, even though M3 reaches the same cost with about 7 variables.} The alternative is to add a tie-breaker: "within one standard error, prefer fewer selected variables", which would pick M3. I recommend keeping the agreed rule. It was set before seeing these results, and changing a rule after seeing the results weakens it.
+\end{itemize}
+\end{mdfile}
+
+\begin{mdfile}{AgentDiscussion/step3/step3\_recap.md}{excerpt, recap: what changed while coding}
+\mdh{2}{Differences from the plan}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{M2\textquotesingle s grid states \texttt{C} explicitly} (\texttt{{[}best\_C{]}}) instead of relying on the value preset inside \texttt{selector}. This is more robust and makes M2 and M3 directly parallel, since M3 just swaps in \texttt{C\_grid{[}4:11{]}}.
+\item
+  \textbf{"Apply the rule and keep the final model" became two cells} (the rule table, then the freeze), to keep one task per cell. That is why there are 13 code cells instead of 12.
+\item
+  \textbf{Section 3.1 shows the metric as an empirical-risk formula}, and \texttt{avg\_cost} computes exactly that: the mean of the per-firm losses.
+\item
+  \textbf{Two pandas 3 adjustments:}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    In the validation-curve plot, depth "None" is converted to the label "no limit" before plotting.
+  \item
+    The comparison table uses \texttt{convert\_dtypes()}, so depths and leaf sizes display as whole numbers.
+  \end{itemize}
+\end{enumerate}
+\end{mdfile}

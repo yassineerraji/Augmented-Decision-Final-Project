@@ -99,8 +99,8 @@ ADE-Final/
 ├── report/
 │   ├── main.tex / main.pdf           # final report (LaTeX, compiled with Tectonic or XeLaTeX)
 │   ├── figures/                      # report figures (IBM Plex Sans)
-│   ├── appendix/                     # LLM-assistance appendix: prompt log and rendered discussion files
-│   └── build_appendix.py             # regenerates appendix/ (pandoc rendering, verbatim prompts)
+│   ├── appendix/                     # LLM-assistance appendix: INSTRUCTIONS.md and discussion excerpts
+│   └── build_appendix.py             # regenerates appendix/ (pandoc rendering of the Markdown files)
 ├── slides/
 │   ├── main.tex / main.pdf           # final presentation (Beamer, set in Arial)
 │   ├── figures/                      # slide figures (Arial)
