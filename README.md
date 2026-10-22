@@ -96,6 +96,9 @@ ADE-Final/
 ├── data/
 │   ├── data.csv                      # 6,819 firms × 96 columns
 │   └── README.md                     # variable descriptions (UCI)
+├── slides/
+│   ├── main.tex / main.pdf           # final presentation (Beamer, compiled with Tectonic or XeLaTeX)
+│   └── make_figures.py               # re-runs the notebook and exports the slide figures
 ├── AgentDiscussion/                  # plan and recap of each step, final review log
 ├── INSTRUCTIONS.md                   # coding and workflow rules
 ├── requirements.txt                  # pinned dependencies
