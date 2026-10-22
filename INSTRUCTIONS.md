@@ -1,0 +1,36 @@
+# We are working on the Taiwanese Bankruptcy Prediction
+* (https://archive.ics.uci.edu/dataset/572/taiwanese+bankruptcy+prediction), UCI Machine Learning Repository. Collected from the Taiwan Economic Journal, 1999–2009.
+
+## Our goal is to build a 4-step project that goes as follows: 
+
+1. Problem Formulation & Exploratory Data Analysis
+2. Variable Selection
+3. Model Selection and Decision Tree Tuning
+4. Evaluation of the final model 
+
+Our end-deliverable is one notebook file (ipynb), containing the code that implements the 4 steps.
+
+**IMPORTANT**: WE MUST CODE IN THE MOST SIMPLE WAY POSSIBLE. WHAT IS MEANT BY SIMPLE IS: 
+
+- A python cell only does one task at a time. 
+- We always privilege code minimality, what can be done in two lines of codes must be done in no more than two lines, always.
+- We always privilege simplicity and correctness over complexity and long code that is hard to visually understand.
+- We always include comments in the beginning of a Python cell to explain what is being done.
+- All the steps we code must build on top of the previous ones.
+- When doing assumptions, or making decisions, they must never be done silently and appear in the form of concise markdowns cells.
+- Markdown cells must follow a clean and coherent structure all the way through the notebook.
+
+## In the context folder you will find two elements: 
+
+1. The lecture decks of the course that will serve as great context to scope well the work we are doing.
+2. The official instruction file for the project, provided by our teacher. Feel free to read it to have context on the final submission but don't pay too much attention to it for now as we are only working on the code in a notebook for now. Also, don't pay attention to the LLM disclosure element, I will take care of it when writing the report file. 
+
+
+## The workflow will be as follows: 
+
+We will be working step by step and not one-shot the full project.
+
+1. You will explain very concisely your thoughts, assumptions and rationale in a folder called AgentDiscussion, where you will add a new markdown file at the beginning of each of the 4 steps of the project.
+2. I will review in details the markdown files and either leave them as is or bring modification to them. 
+3. You will check the last state of the markdown cell and build according to it. 
+4. After you end coding, write a recap markdown file in the same AgentDiscussion folder and wait for me to review the code and the markdown file before signaling that we can proceed with the next step of the project.
