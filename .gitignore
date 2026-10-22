@@ -8,3 +8,6 @@ __pycache__/
 
 # Course material (lecture decks and project brief) — not redistributed
 context/
+
+# Personal presentation preparation (presenter's guides)
+prep/

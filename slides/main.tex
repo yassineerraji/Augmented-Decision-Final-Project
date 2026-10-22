@@ -253,28 +253,9 @@
       \includegraphics{heatmap.pdf}
     \column{0.44\textwidth}
       \stat[risk]{50 pairs}{of ratios with $|\rho| > 0.95$, involving 47 of the 94 ratios}\par\vspace{5mm}
-      \aside{Spearman correlation: it captures a ratio and its inverse, and ignores extreme magnitudes.}\par\vspace{5mm}
+      \aside{Spearman correlation works on ranks, so it also captures a ratio and its inverse.}\par\vspace{5mm}
       \takeaway{A strong case for variable selection.}
   \end{columns}
-\end{frame}
-
-\begin{frame}{Some values are off the scale}
-  \vspace{5mm}\centering
-  \begin{tikzpicture}[x=1mm, y=1mm]
-    \draw[muted, line width=0.7pt] (0,0) -- (50,0);
-    \draw[muted, line width=0.7pt] (62,0) -- (132,0);
-    \draw[muted, line width=0.7pt] (53,-2.2) -- (55,2.2);
-    \draw[muted, line width=0.7pt] (57,-2.2) -- (59,2.2);
-    \foreach \x/\l in {0/0, 50/1, 62/{$6 \times 10^{5}$}, 132/{$10^{10}$}} \node[below=1.5mm, font=\scriptsize, text=muted] at (\x,0) {\l};
-    \foreach \x in {2,5,6.5,9,13,14,18,21,22.5,26,29,31,34,38,41,44,47} \fill[model] (\x,3) circle (1);
-    \foreach \x in {66,73,79,84,92,97,103,108,114,119,124,129} \fill[risk] (\x,3) circle (1);
-    \node[font=\small, text=model, above] at (25,6) {ordinary ratios, in $[0,1]$};
-    \node[font=\small, text=risk, above] at (97,6) {extreme values in 24 ratios};
-  \end{tikzpicture}\par\vspace{9mm}\raggedright
-  \begin{points}
-    \item \textbf{Not noise:} inside the extreme group, the value alone still ranks bankruptcies with an AUC of 0.72.
-    \item \textbf{Our answer:} keep the \emph{order}, drop the magnitude. The tree only uses order; the LASSO gets a rank (quantile) transform.
-  \end{points}
 \end{frame}
 
 \begin{frame}{Our approach in one picture}
