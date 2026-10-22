@@ -108,9 +108,9 @@ cols = np.where(lt["flagged at 1/11"], RISK, GREY)
 fig, ax = plt.subplots(figsize=(3.75, 2.15))
 ax.hlines(y, 1, lt["switching ratio r*"], color=cols, lw=1.3)
 ax.scatter(lt["switching ratio r*"], y, color=cols, s=26, zorder=3)
-for r in (5, 10, 20):
-    ax.axvline(r, color=INK if r == 10 else MUTED, ls="-" if r == 10 else ":", lw=1)
-ax.text(10, -1.05, "our ratio: 10", ha="center", fontsize=8, color=INK)
+for r in (5, 10, 20):  # reference lines stop below the header so the label stays clear
+    ax.vlines(r, -0.6, len(lt) - 0.5, color=INK if r == 10 else MUTED, ls="-" if r == 10 else ":", lw=1)
+ax.text(10, -1.05, "our ratio: 10", ha="center", va="center", fontsize=8.5, color=INK, weight="semibold")
 ax.set(xscale="log", yticks=y, xlabel="switching cost ratio r*", xticks=[1, 2, 5, 10, 20, 50, 100, 300],
        yticklabels=[f"{s:.1%} · {n:,} firms" for s, n in zip(lt["bankruptcy share"], lt["training firms"])])
 ax.set_xticklabels(["1", "2", "5", "10", "20", "50", "100", "300"]); ax.minorticks_off()
