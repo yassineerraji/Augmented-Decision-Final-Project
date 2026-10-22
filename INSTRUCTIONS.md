@@ -10,7 +10,9 @@
 
 Our end-deliverable is one notebook file (ipynb), containing the code that implements the 4 steps.
 
-**IMPORTANT**: WE MUST CODE IN THE MOST SIMPLE WAY POSSIBLE. WHAT IS MEANT BY SIMPLE IS: 
+**IMPORTANT**: WE MUST CODE IN THE MOST SIMPLE WAY POSSIBLE. 
+
+WHAT IS MEANT BY SIMPLE IS: 
 
 - A python cell only does one task at a time. 
 - We always privilege code minimality, what can be done in two lines of codes must be done in no more than two lines, always.
@@ -23,8 +25,7 @@ Our end-deliverable is one notebook file (ipynb), containing the code that imple
 ## In the context folder you will find two elements: 
 
 1. The lecture decks of the course that will serve as great context to scope well the work we are doing.
-2. The official instruction file for the project, provided by our teacher. Feel free to read it to have context on the final submission but don't pay too much attention to it for now as we are only working on the code in a notebook for now. Also, don't pay attention to the LLM disclosure element, I will take care of it when writing the report file. 
-
+2. The official instruction file for the project, provided by our teacher. Feel free to read it to have context on the final submission.
 
 ## The workflow will be as follows: 
 
