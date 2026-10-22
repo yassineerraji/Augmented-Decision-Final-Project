@@ -1,0 +1,449 @@
+% =====================================================================
+%  Taiwanese Bankruptcy Prediction — final report (Augmented Decision)
+%  Compile from this folder:   tectonic main.tex      (or: xelatex main.tex, twice)
+%  Figures in figures/ are exported by:  .venv/bin/python slides/make_figures.py "IBM Plex Sans"
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+
+% ---------- Page and fonts ----------
+\usepackage[a4paper, top=24mm, bottom=26mm, left=25mm, right=25mm, headsep=8mm]{geometry}
+\usepackage{fontspec}
+\setmainfont{IBMPlexSerif}[Extension=.otf, UprightFont=*-Regular, BoldFont=*-SemiBold, ItalicFont=*-Italic, Scale=0.94]
+\setsansfont{IBMPlexSans}[Extension=.otf, UprightFont=*-Regular, BoldFont=*-SemiBold, ItalicFont=*-Italic, BoldItalicFont=*-SemiBoldItalic]
+\setmonofont{IBMPlexMono}[Extension=.otf, UprightFont=*-Regular, BoldFont=*-SemiBold, ItalicFont=*-Italic, Scale=0.86]
+\linespread{1.12}
+\setlength{\emergencystretch}{2em}
+
+\usepackage{amsmath, amssymb}
+\usepackage{xcolor, graphicx, booktabs, tabularx, enumitem, listings, caption}
+\usepackage[section]{placeins}
+\usepackage{titlesec, fancyhdr}
+\usepackage{tikz, pgfplots}
+\usetikzlibrary{positioning, arrows.meta}
+\pgfplotsset{compat=1.18}
+\graphicspath{{figures/}}
+
+% ---------- Palette (same as the slides) ----------
+\definecolor{paper}{HTML}{F6F3EC}
+\definecolor{ink}{HTML}{16181D}
+\definecolor{muted}{HTML}{6B6F78}
+\definecolor{rule}{HTML}{D9D2C5}
+\definecolor{risk}{HTML}{B42318}
+\definecolor{model}{HTML}{155E63}
+\definecolor{bench}{HTML}{B8862B}
+\definecolor{risktint}{HTML}{F2DAD6}
+\definecolor{modeltint}{HTML}{D5E5E3}
+\definecolor{card}{HTML}{FFFEFB}
+\color{ink}
+
+\usepackage[colorlinks=true, linkcolor=model, urlcolor=model, citecolor=model]{hyperref}
+
+% ---------- Headings, header, captions, lists ----------
+\titleformat{\section}{\sffamily\Large\bfseries}{\color{risk}\thesection}{0.7em}{}
+\titleformat{\subsection}{\sffamily\large\bfseries}{\color{risk}\thesubsection}{0.7em}{}
+\titleformat{\paragraph}[runin]{\sffamily\bfseries}{}{}{}[.]
+\titlespacing*{\section}{0pt}{5mm}{2.5mm}
+\titlespacing*{\subsection}{0pt}{4mm}{1.8mm}
+\newcommand{\caps}[1]{{\sffamily\fontsize{7.5}{9}\selectfont\addfontfeatures{LetterSpace=12}#1}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyhead[L]{\color{muted}\caps{TAIWANESE BANKRUPTCY PREDICTION}}
+\fancyhead[R]{\color{muted}\caps{AUGMENTED DECISION \enspace·\enspace FINAL REPORT}}
+\fancyfoot[C]{\sffamily\small\color{muted}\thepage}
+
+\captionsetup{font={small,sf}, labelfont={bf,color=risk}, labelsep=period, skip=5pt}
+\setlist[itemize]{leftmargin=1.3em, itemsep=1.5pt, topsep=3pt, label={\color{risk}\rule[0.33ex]{0.6em}{0.9pt}}}
+\setlist[enumerate]{leftmargin=1.5em, itemsep=1.5pt, topsep=3pt, label={\color{risk}\sffamily\bfseries\arabic*}}
+\tikzset{every picture/.append style={font=\sffamily}}
+\newcommand{\tablefont}{\sffamily\small}
+\renewcommand{\arraystretch}{1.18}
+
+% ---------- Code snapshots ----------
+\lstdefinestyle{nb}{language=Python, basicstyle=\ttfamily\footnotesize, columns=fullflexible, keepspaces=true,
+  keywordstyle=\color{model}\bfseries, stringstyle=\color{risk}, commentstyle=\color{muted}\itshape,
+  backgroundcolor=\color{paper}, frame=leftline, framerule=1.6pt, rulecolor=\color{risk},
+  xleftmargin=4mm, framexleftmargin=4mm, aboveskip=6pt, belowskip=4pt, showstringspaces=false,
+  morekeywords={True, False, None}}
+\lstset{style=nb}
+\renewcommand{\lstlistingname}{Code}
+
+\begin{document}
+
+% =====================================================================
+%  TITLE BLOCK
+% =====================================================================
+\thispagestyle{empty}
+\begin{tikzpicture}[remember picture, overlay]
+  \fill[risk] ([yshift=-24mm]current page.north west) rectangle ++(3mm,-3mm);
+\end{tikzpicture}%
+{\color{risk}\caps{AUGMENTED DECISION \quad·\quad FINAL PROJECT REPORT}}\par\vspace{5mm}
+{\fontsize{25}{30}\selectfont Flagging bankruptcy \textit{before} it happens}\par\vspace{3mm}
+{\sffamily\large\color{muted} Cost-sensitive screening of Taiwanese firms\\ with LASSO selection and a decision tree}\par\vspace{5mm}
+{\sffamily\bfseries Yassine ERRAJI \enspace·\enspace William PELTIER \enspace·\enspace Ben DAESH \enspace·\enspace Simon AMAR}\par\vspace{1mm}
+{\sffamily\small\color{muted} 23 October 2026 \enspace·\enspace Code: \href{https://github.com/yassineerraji/Augmented-Decision-Final-Project}{github.com/yassineerraji/Augmented-Decision-Final-Project}}\par\vspace{5mm}
+
+\noindent\begin{tikzpicture}
+  \node[fill=paper, inner xsep=5mm, inner ysep=4mm, text width=\linewidth-10mm, align=justify] {%
+    {\color{risk}\caps{ABSTRACT}}\par\vspace{1.5mm}
+    A credit analyst must decide whether to flag a listed firm as high-risk using its financial ratios. Bankruptcies are rare (3.2\,\% of 6,819 Taiwanese firms) and a missed one is assumed to cost ten false alarms, so models are judged on the \emph{average misclassification cost per firm}, and a firm is flagged when its estimated bankruptcy probability reaches the Bayes threshold $1/11$. We select variables with an L1-penalised (LASSO) logistic regression, refit inside every cross-validation fold, and feed the 43 selected ratios to a depth-4 decision tree. On 1,364 held-out firms the final model costs \textbf{0.179} per firm against \textbf{0.323} for not screening ($-45\,\%$; 95\,\% bootstrap interval of the gain $[0.065, 0.228]$), catching 32 of the 44 bankruptcies. The tree uses only 8 ratios and reads as a handful of rules; a random forest would be about 10\,\% cheaper in cross-validation, the price we pay for interpretability.};
+\end{tikzpicture}
+
+% =====================================================================
+\section{Problem formulation}
+% =====================================================================
+
+\paragraph{Decision and target} A credit analyst reviews a listed firm and chooses between two actions: \emph{flag} it as high-risk (deny or reprice credit, open a closer review) or \emph{do not flag} it. The target is $Y = $ \texttt{Bankrupt?}, equal to 1 if the firm went bankrupt under the Taiwan Stock Exchange rules. The inputs $x$ are 95 financial ratios, assumed to be known before the outcome.
+
+\paragraph{Loss and decision rule} The two possible errors do not cost the same (Table~\ref{tab:loss}). With $p = P(Y=1 \mid x)$, flagging has expected cost $C_{FP}(1-p)$ and not flagging $C_{FN}\,p$, so the Bayes decision rule (Lecture~1) flags a firm when
+\begin{equation}\label{eq:bayes}
+  p \;\ge\; \frac{C_{FP}}{C_{FP}+C_{FN}} \;=\; \frac{1}{11} \;\approx\; 0.09 .
+\end{equation}
+The costs $C_{FN}=10$ and $C_{FP}=1$ are stipulated, not estimated; Section~\ref{sec:sensitivity} shows how the decisions change with the cost ratio.
+
+\begin{table}[htbp]\centering\tablefont
+  \caption{Loss table of the decision problem.}\label{tab:loss}
+  \begin{tabular}{lcc}
+    \toprule
+    & Healthy firm ($Y=0$) & Bankrupt firm ($Y=1$) \\
+    \midrule
+    Do not flag ($a=0$) & 0 & $C_{FN} = 10$ \ (missed bankruptcy) \\
+    Flag ($a=1$) & $C_{FP} = 1$ \ (false alarm) & 0 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{Metric and baseline} A model is scored by its empirical risk under the loss table, the \emph{average cost per firm} (lower is better), complemented by recall and precision:
+\begin{equation}\label{eq:risk}
+  \hat R_n \;=\; \frac{1}{n}\sum_{i=1}^{n} L(\hat a_i, y_i) \;=\; \frac{C_{FN}\cdot \mathrm{FN} + C_{FP}\cdot \mathrm{FP}}{n}.
+\end{equation}
+Accuracy is unsuitable: the majority-class rule ``never flag'' is 96.8\,\% accurate while catching no bankruptcy. That rule is our \textbf{baseline}; its cost is $10 \times 0.032 \approx 0.323$ per firm.
+
+\paragraph{Data} The data come from the Taiwan Economic Journal for 1999–2009 and are distributed by the UCI Machine Learning Repository~\cite{uci, liang}. Table~\ref{tab:data} summarises them. Two features of the data shape our method. First, the ratios are highly redundant: 50 pairs have a Spearman correlation $|\rho| > 0.95$, involving 47 of the 94 usable ratios (Figure~\ref{fig:heatmap}). Second, 24 ratios mix values in $[0,1]$ with values between $6\times10^{5}$ and $10^{10}$, with nothing in between, which looks like an encoding artefact. The strongest single predictors are profitability ratios (EPS, net income to total assets, ROA), each with a univariate AUC between 0.86 and 0.89. This exploratory analysis is descriptive only; every modelling choice below is made on the training set.
+
+\begin{table}[htbp]\centering\tablefont
+  \caption{The dataset at a glance.}\label{tab:data}
+  \begin{tabularx}{0.86\linewidth}{lX}
+    \toprule
+    Observations & 6,819 listed Taiwanese firms, 1999–2009 \\
+    Variables & 95 financial ratios (one, \texttt{Net Income Flag}, is constant and is dropped: 94 remain) \\
+    Target distribution & 220 bankrupt firms (3.2\,\%), 6,599 healthy firms \\
+    Missing values, duplicates & none, none \\
+    Preprocessing required & drop the constant column; handle 24 ratios with extreme values (Section~\ref{sec:preproc}) \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]\centering
+  \includegraphics{heatmap.pdf}
+  \caption{Spearman correlation matrix of the 94 ratios, in dataset column order. Blocks of near-duplicates (profitability, per-share values, growth, leverage, cash flow) motivate variable selection.}\label{fig:heatmap}
+\end{figure}
+
+% =====================================================================
+\section{Methods and choices}
+% =====================================================================
+
+\subsection{Overview}
+Figure~\ref{fig:pipeline} summarises the approach (``variable selection with decision-tree classification''). A LASSO logistic regression chooses a subset of ratios; a decision tree, grown on the raw values of those ratios, estimates the bankruptcy probability in each leaf; the Bayes rule~\eqref{eq:bayes} turns that probability into a decision.
+
+\begin{figure}[htbp]\centering
+  \begin{tikzpicture}[node distance=4mm, box/.style={draw=rule, fill=card, rounded corners=2pt, align=center, text width=22mm,
+                      minimum height=17mm, inner sep=1.5mm, font=\sffamily\footnotesize}, arr/.style={-{Stealth[length=2mm]}, muted, line width=0.8pt}]
+    \node[box] (a) {\textbf{94 ratios}\\[1mm]{\scriptsize\color{muted}raw values}};
+    \node[box, right=of a] (b) {\textbf{LASSO}\\[1mm]{\scriptsize\color{muted}quantile transform\\L1 logistic, $C \approx 0.18$}};
+    \node[box, right=of b] (c) {\textbf{43 ratios}\\[1mm]{\scriptsize\color{muted}raw values}};
+    \node[box, right=of c, draw=model, line width=0.7pt] (d) {\textbf{Decision tree}\\[1mm]{\scriptsize\color{muted}depth 4\\$\ge 120$ firms per leaf}};
+    \node[box, right=of d, fill=risk, draw=risk, text=paper] (e) {\textbf{Flag}\\[1mm]{\scriptsize if the leaf share\\$\hat\eta(x) \ge 1/11$}};
+    \foreach \u/\v in {a/b, b/c, c/d, d/e} \draw[arr] (\u) -- (\v);
+  \end{tikzpicture}
+  \caption{The final pipeline. Everything left of the decision is refit inside every cross-validation fold.}\label{fig:pipeline}
+\end{figure}
+
+\subsection{Data split and validation protocol}
+We hold out a stratified 20\,\% test set (1,364 firms, 44 bankrupt) with a fixed seed; the remaining 5,455 firms (176 bankrupt) form the training set. The test set is opened once, at the end, for the frozen final model and the baseline only (Lecture~2). All tuning and model comparisons use the \emph{same} stratified 5-fold cross-validation on the training set. Preprocessing and selection are part of scikit-learn pipelines~\cite{sklearn}, so in every fold the quantile transform, the LASSO and the tree are refit on four folds and scored on the fifth: no information leaks from the validation fold. Code~\ref{lst:metric} shows the metric used throughout.
+
+\begin{lstlisting}[float=htbp, caption={The decision cost as a scikit-learn scorer (notebook, Section 3.1).}, label={lst:metric}]
+def avg_cost(y_true, y_pred, c_fn=C_FN, c_fp=C_FP):
+    return np.mean(c_fn * ((y_true == 1) & (y_pred == 0))
+                   + c_fp * ((y_true == 0) & (y_pred == 1)))
+
+cost_scorer = make_scorer(avg_cost, greater_is_better=False)
+\end{lstlisting}
+
+\subsection{Preprocessing}\label{sec:preproc}
+The constant column is dropped. The 24 ratios with extreme values are \emph{not} capped: among the 4,816 training firms whose \texttt{Total Asset Growth Rate} exceeds 1, the value alone still ranks bankruptcies with an AUC of 0.72, so the extreme values carry signal. The two models need different treatments. The tree only uses the order of the values and receives the raw ratios. The LASSO is sensitive to scale, so it receives a rank-based quantile transform to a standard normal, fitted on the training folds only: it keeps the order of the values, removes the magnitude problem and puts all ratios on a common scale, which a fair L1 penalty requires.
+
+\subsection{Variable selection: LASSO logistic regression}
+For a binary outcome, the LASSO of Lecture~4 becomes an L1-penalised logistic regression with an unpenalised intercept:
+\begin{equation}\label{eq:lasso}
+  \min_{b_0,\,\beta}\; -\frac{1}{n}\sum_{i=1}^{n}\Big[y_i\log p_i + (1-y_i)\log(1-p_i)\Big] + \lambda\lVert\beta\rVert_1,
+  \qquad p_i = \frac{1}{1+e^{-(b_0 + x_i^\top\beta)}} .
+\end{equation}
+The L1 penalty sets many coefficients exactly to zero; the corresponding ratios are dropped. In scikit-learn the penalty is set through $C = 1/(n\lambda)$. We prefer the LASSO to forward selection (Lecture~3.2) because a single parameter controls the number of variables, it copes with the redundant ratios, and one fit takes under a second, so it can be refit inside every fold; forward selection would need up to 94 fits per added variable, repeated in every fold. The intercept is kept unpenalised as in the course (\texttt{intercept\_scaling=100} makes \texttt{liblinear}'s intercept penalty negligible), and no class weights are used: the LASSO only chooses variables, and the costs enter at the decision stage.
+
+\paragraph{Penalty} $C$ is chosen by 5-fold cross-validation on the training set, minimising the log-loss, a proper scoring rule and the classification counterpart of the validation MSE used in the course, over 13 values from $10^{-3}$ to $1$ (Code~\ref{lst:lasso}). The minimum, $C \approx 0.178$, keeps \textbf{43 of the 94 ratios}, with a CV log-loss of 0.0855 against 0.143 with no variable (Figure~\ref{fig:lasso}). The curve is flat: every $C$ from 0.056 (21 ratios) to 0.562 (59 ratios) is within one standard error of the minimum.
+
+\begin{lstlisting}[float=htbp, caption={LASSO pipeline and choice of the penalty (notebook, Sections 2.1–2.2).}, label={lst:lasso}]
+lasso = make_pipeline(QuantileTransformer(output_distribution="normal"),
+                      LogisticRegression(l1_ratio=1, solver="liblinear",
+                                         intercept_scaling=100, random_state=SEED))
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=SEED)
+C_grid = np.logspace(-3, 0, 13)
+lasso_cv = GridSearchCV(lasso, {"logisticregression__C": C_grid}, cv=cv,
+                        scoring="neg_log_loss", n_jobs=-1).fit(X_train, y_train)
+\end{lstlisting}
+
+\begin{figure}[htbp]\centering
+  \includegraphics{lasso_path.pdf}
+  \caption{Choice of the LASSO penalty. Left: cross-validated log-loss (mean $\pm$ 1 SE). Right: number of ratios kept when refit on the full training set. Dashed line: chosen $C \approx 0.18$.}\label{fig:lasso}
+\end{figure}
+
+\paragraph{What is selected, and how stable it is} The leading coefficients (Table~\ref{tab:coef}) cover leverage, profitability and liquidity, with intuitive signs: more debt raises the predicted risk, more profit and liquidity lower it. Following Lecture~4, we refit the whole procedure on 100 stratified bootstrap resamples of the training set (Figure~\ref{fig:stability}). Only 15 of the 43 selected ratios are kept in at least 80\,\% of the resamples, and some ratios left out are often selected, such as the R\&D expense rate (81\,\%): correlated ratios swap places. The selected set is a good predictive shortlist, not a list of causes.
+
+\begin{table}[htbp]\centering\tablefont
+  \caption{The eight largest LASSO coefficients at $C \approx 0.178$ (quantile-normal scale, so magnitudes are comparable).}\label{tab:coef}
+  \begin{tabular}{lr@{\qquad}lr}
+    \toprule
+    Ratio & Coefficient & Ratio & Coefficient \\
+    \midrule
+    Total debt / total net worth & $+0.819$ & Quick ratio & $-0.320$ \\
+    ROA(B) before interest & $-0.477$ & Working capital turnover & $+0.314$ \\
+    Retained earnings / total assets & $-0.415$ & Persistent EPS (4 seasons) & $-0.311$ \\
+    Interest-bearing debt interest rate & $+0.350$ & Borrowing dependency & $+0.308$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[htbp]\centering
+  \includegraphics{stability.pdf}
+  \caption{Selection stability: share of 100 bootstrap refits in which each ratio is selected (92 ratios selected at least once). Teal: in the 43-ratio shortlist; grey: not in it.}\label{fig:stability}
+\end{figure}
+
+\subsection{Decision tree and decision rule}
+A classification tree (CART, Gini impurity $G(q) = 2q(1-q)$, Lecture~3) is grown on the raw values of the selected ratios. The share of bankrupt training firms in a leaf estimates $\hat\eta(x) = P(Y=1 \mid x)$ for every firm reaching it, and the firm is flagged when $\hat\eta(x) \ge 1/11$. The costs therefore enter through the \emph{threshold}, not through class weights: this keeps the leaves' reading as probabilities and lets us test other cost ratios without retraining. In code, the whole pipeline is wrapped in a \texttt{FixedThresholdClassifier}, so its predictions are directly the decisions (Code~\ref{lst:m2}).
+
+\paragraph{Hyperparameters} We tune the maximum depth, $\{2,3,4,5,6,8,\text{no limit}\}$, and the minimum number of firms per leaf, $\{1,10,20,40,80,120,160,200\}$, on the decision cost. Large leaves are needed for the leaf shares to be reliable probabilities: with a 3.2\,\% bankruptcy rate, a leaf of 120 firms holds only about four bankruptcies. Figure~\ref{fig:validation} shows the effect. With leaves of one firm, the training cost falls to zero as the tree deepens while the CV cost climbs from 0.17 to 0.23: the tree memorises the training firms (Lecture~2). With at least 120 firms per leaf, the gap stays small and depth~4 is best (0.151).
+
+\begin{lstlisting}[float=htbp, caption={Final pipeline M2 and its tuning (notebook, Sections 2.4 and 3.3).}, label={lst:m2}]
+selector = SelectFromModel(lasso.set_params(logisticregression__C=best_C),
+                           importance_getter="named_steps.logisticregression.coef_",
+                           threshold=1e-5)  # keep the non-zero coefficients
+pipe = FixedThresholdClassifier(
+    Pipeline([("select", selector),
+              ("tree", DecisionTreeClassifier(random_state=SEED))]),
+    threshold=THRESHOLD)                    # flag when P(bankrupt | x) >= 1/11
+tree_grid = {"max_depth": [2, 3, 4, 5, 6, 8, None],
+             "min_samples_leaf": [1, 10, 20, 40, 80, 120, 160, 200]}
+m2_grid = {"estimator__select__estimator__logisticregression__C": [best_C],
+           **{f"estimator__tree__{k}": v for k, v in tree_grid.items()}}
+m2 = GridSearchCV(pipe, m2_grid, cv=cv, scoring=cost_scorer, n_jobs=-1,
+                  return_train_score=True).fit(X_train, y_train)
+\end{lstlisting}
+
+\begin{figure}[htbp]\centering
+  \includegraphics{validation.pdf}
+  \caption{Validation curves of the final pipeline: training and cross-validated cost per firm against the maximum depth, for leaves of one firm (left) and of at least 120 firms (right).}\label{fig:validation}
+\end{figure}
+
+% =====================================================================
+\section{Evaluation}
+% =====================================================================
+
+\subsection{Cross-validated model selection}
+We compare four candidates on the same folds: \textbf{M0}, the baseline; \textbf{M1}, a tuned tree on all 94 ratios; \textbf{M2}, the LASSO selector with $C$ fixed at its Section~2.4 value, followed by a tuned tree; and \textbf{M3}, the same pipeline with $C$ tuned jointly with the tree over the seven grid values from 0.01 to 0.316. The selection rule was fixed before seeing these results: M2, the course protocol, is the reference, and an alternative replaces it only if its CV cost is lower by more than one standard error. Because all candidates share the folds, the comparison is \emph{paired}: for each fold $k$ we compute the gain $\Delta_k = \text{cost}_k(\text{M2}) - \text{cost}_k(\text{alternative})$ and its standard error $s_\Delta/\sqrt{5}$ (Code~\ref{lst:rule}).
+
+\begin{table}[htbp]\centering\tablefont
+  \caption{Cross-validated results (5 folds, training set). Paired gain of each alternative over M2: mean $\pm$ standard error, and number of folds in which it is cheaper than M2.}\label{tab:cv}
+  \begin{tabular}{lcccccc}
+    \toprule
+    Candidate & CV cost & Depth & Leaf & $C$ & Ratios & Paired gain over M2 \\
+    \midrule
+    M0 Never flag & 0.323 & -- & -- & -- & 0 & $-0.171 \pm 0.009$ \ (0/5) \\
+    M1 Tree, all ratios & 0.163 & 4 & 120 & -- & 94 & $-0.012 \pm 0.005$ \ (0/5) \\
+    \textbf{M2 LASSO + tree} & \textbf{0.151} & 4 & 120 & 0.178 & 43 & reference \\
+    M3 LASSO (joint $C$) + tree & 0.148 & 3 & 10 & 0.01 & 7 & $+0.003 \pm 0.007$ \ (3/5) \\
+    \midrule
+    \textcolor{bench}{M4 LASSO + random forest} & 0.136 & -- & 10 & 0.178 & 43 & $+0.015 \pm 0.007$ \ (5/5) \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{lstlisting}[float=htbp, caption={Paired selection rule (notebook, Section 3.4).}, label={lst:rule}]
+# per-fold gain of each candidate over M2 (> 0: cheaper than M2)
+gains = fold_costs.rsub(fold_costs["M2 LASSO, C fixed"], axis=0)
+rule = pd.DataFrame({"mean gain over M2": gains.mean(),
+                     "paired SE": gains.std() / np.sqrt(5),
+                     "folds cheaper than M2": (gains > 0).sum()})
+rule["replaces M2"] = rule["mean gain over M2"] > rule["paired SE"]
+\end{lstlisting}
+
+Table~\ref{tab:cv} and Figure~\ref{fig:candidates} give the results. Every tree halves the cost of the baseline. \textbf{Variable selection helps}: M2 beats the tree on all 94 ratios by $0.012 \pm 0.005$ and is cheaper or tied on every fold. Joint tuning (M3) is not significantly better ($0.003 \pm 0.007$), although it shows that a 7-ratio selection works about as well. M2 is therefore the final model.
+
+\paragraph{Benchmark: the price of interpretability} To measure what a single readable tree costs, we also cross-validated a random forest of 300 trees on the LASSO-selected ratios (M4), tuning its leaf size. It is a benchmark, not a candidate: the brief asks for a decision-tree classifier and our recommendation relies on reading the tree's rules, so M4 is never scored on the test set. It is about 10\,\% cheaper ($0.015 \pm 0.007$, cheaper on all five folds), because averaging 300 trees gives much finer probabilities than nine leaves.
+
+\begin{figure}[htbp]\centering
+  \includegraphics{candidates.pdf}
+  \caption{Cross-validated cost per firm of the four candidates ($\pm$ 1 standard error across folds).}\label{fig:candidates}
+\end{figure}
+
+\subsection{The final model}
+Refit on the full training set, the LASSO keeps 43 ratios and the tree, of depth~4, has \textbf{9 leaves and uses only 8 of them} (Figure~\ref{fig:tree}): the tree performs a second, finer selection.
+
+\begin{figure}[htbp]\centering
+  \begin{tikzpicture}[x=1mm, y=1mm, font=\sffamily\scriptsize,
+      split/.style={draw=rule, fill=card, rounded corners=1.5pt, align=center, inner sep=1.1mm},
+      leaf/.style={draw=rule, fill=card, rounded corners=1.5pt, align=center, inner sep=0.8mm, minimum width=12mm, minimum height=8mm},
+      flag/.style={leaf, fill=risk, draw=risk, text=paper},
+      e/.style={draw=muted, line width=0.5pt}]
+    \node[split] (n0)  at (70,0)    {net value growth\\$\le 0.00037$};
+    \node[flag]  (n1)  at (12,-12)  {\textbf{42\%}\\150};
+    \node[split] (n2)  at (88,-12)  {borrowing dependency\\$\le 0.38$};
+    \node[split] (n3)  at (52,-24)  {EPS, last 4 seasons\\$\le 0.20$};
+    \node[split] (n10) at (118,-24) {continuous interest rate\\$\le 0.78$};
+    \node[split] (n4)  at (34,-36)  {quick asset turnover\\$\le 0.00024$};
+    \node[split] (n7)  at (70,-36)  {interest coverage\\$\le 0.56$};
+    \node[split] (n11) at (103,-36) {debt interest rate\\$\le 0.00045$};
+    \node[split] (n14) at (136,-36) {inventory / working cap.\\$\le 0.28$};
+    \node[leaf]  (n5)  at (27,-49)  {\textbf{1.6\%}\\122};
+    \node[flag]  (n6)  at (41,-49)  {\textbf{9.3\%}\\129};
+    \node[leaf]  (n8)  at (63,-49)  {\textbf{3.9\%}\\155};
+    \node[leaf, fill=modeltint, draw=model] (n9) at (77,-49) {\textbf{0.3\%}\\4,239};
+    \node[flag]  (n12) at (96,-49)  {\textbf{12\%}\\146};
+    \node[flag]  (n13) at (110,-49) {\textbf{40\%}\\121};
+    \node[flag]  (n15) at (129,-49) {\textbf{9.3\%}\\129};
+    \node[leaf]  (n16) at (143,-49) {\textbf{1.5\%}\\264};
+    \foreach \a/\b in {n0/n1, n0/n2, n2/n3, n2/n10, n3/n4, n3/n7, n10/n11, n10/n14, n4/n5, n4/n6, n7/n8, n7/n9, n11/n12, n11/n13, n14/n15, n14/n16}
+      \draw[e] (\a.south) -- (\b.north);
+    \node[anchor=north west, align=left, text=muted, inner sep=0] at (110,3.5)
+      {left branch = yes, right = no\\[0.8mm]{\color{risk}$\blacksquare$} flagged: share $\ge 1/11$};
+  \end{tikzpicture}
+  \caption{The final tree. Each leaf shows its share of bankrupt training firms and its number of firms; red leaves are flagged.}\label{fig:tree}
+\end{figure}
+
+\subsection{Test-set performance}
+The frozen model and the baseline are scored once on the 1,364 test firms (Table~\ref{tab:test}, Code~\ref{lst:test}). The model \textbf{costs 0.179 per firm against 0.323}, a 45\,\% reduction. It catches 32 of the 44 bankruptcies (recall 73\,\%) at the price of 124 false alarms (precision 21\,\%): 156 firms are flagged, about one in nine. Its accuracy (90\,\%) is lower than the baseline's (97\,\%), which confirms that accuracy would have rewarded the useless rule.
+
+\begin{table}[htbp]\centering\tablefont
+  \caption{Test-set performance (1,364 firms, 44 bankrupt). Right: confusion matrix of the final model.}\label{tab:test}
+  \begin{minipage}[c]{0.52\linewidth}\centering
+    \begin{tabular}{lcc}
+      \toprule
+      & Final model & Never flag \\
+      \midrule
+      Average cost per firm & \textbf{0.179} & 0.323 \\
+      Recall & 0.727 & 0.000 \\
+      Precision & 0.205 & -- \\
+      Accuracy & 0.900 & 0.968 \\
+      Firms flagged & 156 & 0 \\
+      \bottomrule
+    \end{tabular}
+  \end{minipage}\hfill
+  \begin{minipage}[c]{0.44\linewidth}\centering
+    \begin{tikzpicture}[x=1mm, y=1mm, cell/.style={minimum width=21mm, minimum height=11mm, align=center, inner sep=0}]
+      \node[font=\sffamily\scriptsize\bfseries] at (10.5,8) {not flagged};
+      \node[font=\sffamily\scriptsize\bfseries] at (31.5,8) {flagged};
+      \node[font=\sffamily\scriptsize\bfseries, anchor=east] at (-1,0) {healthy};
+      \node[font=\sffamily\scriptsize\bfseries, anchor=east] at (-1,-11) {bankrupt};
+      \node[cell, fill=card, draw=rule] at (10.5,0) {\textbf{1,196}};
+      \node[cell, fill=risktint] at (31.5,0) {\textbf{124}\\{\scriptsize false alarms}};
+      \node[cell, fill=risk, text=paper] at (10.5,-11) {\textbf{12}\\{\scriptsize missed}};
+      \node[cell, fill=model, text=paper] at (31.5,-11) {\textbf{32}\\{\scriptsize caught}};
+    \end{tikzpicture}
+  \end{minipage}
+\end{table}
+
+\begin{lstlisting}[float=htbp, caption={Test predictions and bootstrap of the test costs (notebook, Sections 4.1–4.2).}, label={lst:test}]
+y_pred = final_model.predict(X_test)        # decisions at the 1/11 threshold
+y_base = np.zeros(len(y_test), dtype=int)   # "never flag"
+boot = [resample(np.arange(len(y_test)), random_state=b) for b in range(1000)]
+boot_costs = pd.DataFrame(
+    [{"Final model": avg_cost(y_test.values[i], y_pred[i]),
+      "Baseline": avg_cost(y_test.values[i], y_base[i])} for i in boot])
+\end{lstlisting}
+
+\paragraph{Uncertainty} With a loss bounded in $[0, C_{FN}]$ and $m = 1{,}364$ test firms, Lecture~2's Hoeffding bound gives a 95\,\% half-width of $C_{FN}\sqrt{\log(2/\alpha)/(2m)} = 0.37$, wider than the gap between the two rules: valid, but uninformative. We therefore use a 95\,\% percentile bootstrap over the test firms, with the predictions fixed and without stratification, so that the number of bankruptcies varies as in a new sample (Figure~\ref{fig:bootstrap}). The paired difference lies in $[-0.228, -0.065]$, entirely below zero: the model's advantage is not an artefact of this test set. The test cost is higher than the CV estimate (0.151), which nevertheless lies inside the model's interval; the gap is expected, since the test cost is noisy with only 44 bankruptcies and the CV cost of the chosen configuration, the best of 56, is slightly optimistic.
+
+\begin{figure}[htbp]\centering
+  \includegraphics{bootstrap.pdf}
+  \caption{Test cost per firm with 95\,\% bootstrap intervals (1,000 resamples of the test firms). Gain of the model over the baseline: $[0.065, 0.228]$ per firm.}\label{fig:bootstrap}
+\end{figure}
+
+\subsection{Sensitivity to the cost ratio}\label{sec:sensitivity}
+The 10:1 ratio is an assumption. For a ratio $r = C_{FN}/C_{FP}$ the Bayes threshold becomes $1/(1+r)$; since the tree is not retrained, only the threshold changes (Table~\ref{tab:sens}). The model beats the baseline under every ratio, cutting its cost by 35\,\%, 45\,\% and 59\,\%. Each leaf is flagged once $r$ exceeds its \emph{switching ratio}
+\begin{equation}\label{eq:switch}
+  r^* = \frac{1-\hat\eta}{\hat\eta}, \qquad \text{since } \hat\eta \ge \frac{1}{1+r} \iff r \ge r^* .
+\end{equation}
+Figure~\ref{fig:switching} shows that the two riskiest leaves (42\,\% and 40\,\%) are flagged for any ratio above 1.5, while two leaves (9.3\,\%) switch at 9.75, just below our assumed ratio. No leaf switches between 9.75 and 24.8, which is why ratios 10 and 20 give identical decisions.
+
+\begin{table}[htbp]\centering\tablefont
+  \caption{Test-set results under three cost ratios (tree unchanged, threshold $1/(1+r)$).}\label{tab:sens}
+  \begin{tabular}{ccccccc}
+    \toprule
+    Cost ratio $r$ & Threshold & Model cost & Baseline cost & Recall & Precision & Firms flagged \\
+    \midrule
+    5 & 0.167 & 0.106 & 0.161 & 0.545 & 0.353 & 68 \\
+    \textbf{10} & \textbf{0.091} & \textbf{0.179} & \textbf{0.323} & \textbf{0.727} & \textbf{0.205} & \textbf{156} \\
+    20 & 0.048 & 0.267 & 0.645 & 0.727 & 0.205 & 156 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[htbp]\centering
+  \includegraphics{switching.pdf}
+  \caption{Switching cost ratio of each leaf (training share of bankrupt firms and number of firms). Red: flagged at our ratio of 10; dotted lines: ratios 5 and 20.}\label{fig:switching}
+\end{figure}
+
+% =====================================================================
+\section{Evidence and recommendation}
+% =====================================================================
+
+\subsection{What the tree says}
+Reading the flagged leaves of Figure~\ref{fig:tree}, the model raises an alarm in three situations: (i) the 2.7\,\% of firms with the weakest net value growth, of which 42\,\% went bankrupt; (ii) heavy reliance on borrowing combined with weak profitability, 40\,\% bankrupt when the debt is expensive and 12\,\% otherwise; (iii) two narrower pockets at 9.3\,\%, flagged only just. Conversely, firms with moderate borrowing, EPS above 0.20 and an interest coverage ratio above 0.56 hold 78\,\% of the training firms and a bankruptcy share of 0.3\,\%. These are predictive associations, not causal effects.
+
+\subsection{Recommendation}
+Following the decision-memo structure of Lecture~1:
+\begin{enumerate}
+  \item \textbf{Action and information.} Flag every firm whose leaf has a bankruptcy share of at least $1/11$, using 8 financial ratios read by a depth-4 tree.
+  \item \textbf{Assumptions.} A missed bankruptcy costs ten false alarms, and the leaf shares of 5,455 training firms are taken as bankruptcy probabilities.
+  \item \textbf{Comparison with the alternative.} On unseen firms the model costs 0.179 per firm against 0.323 without screening, catching 32 of 44 bankruptcies for 124 false alarms. A random forest would lower the cross-validated cost by about 10\,\%, but without the readable rules this recommendation relies on.
+  \item \textbf{Conditions that would change the choice.} With a cost ratio below 9.75, two leaves would no longer be flagged, and below 7.6 a third; any ratio between 9.75 and 24.8 leaves the decisions unchanged.
+\end{enumerate}
+
+\subsection{Limitations}
+\begin{itemize}
+  \item \textbf{Stipulated costs.} The 10:1 ratio is an assumption, and two leaves depend on it being at least 9.75.
+  \item \textbf{No time dimension.} Firms are pooled over 1999–2009 without a year, so the evaluation is a random split, not a forecast of future years; economic conditions may shift (Lecture~2).
+  \item \textbf{Possibly repeated firms.} The rows may include several years of the same firm; a random split can then place one firm in both training and test, making the test cost optimistic. Without a firm identifier this cannot be checked.
+  \item \textbf{Few bankruptcies.} With 176 bankruptcies in training and 44 in test, CV standard errors are about 0.008, the test interval is wide, and leaf shares rest on 2 to 63 bankruptcies. Nodes 6 and 15 are flagged with a share of 0.093, only 0.002 above the threshold, while that share's standard error is about $\sqrt{0.093 \times 0.907 / 129} \approx 0.026$.
+  \item \textbf{No nested cross-validation.} M2 and M3 were compared on the folds used to tune them; the pre-registered rule limits but does not remove this optimism.
+  \item \textbf{Unstable variable list.} Only 15 of the 43 LASSO ratios are robustly selected, and a 7-ratio selection works about as well.
+  \item \textbf{Data quality.} Three of the eight ratios used by the tree contain extreme values that look like encoding artefacts; the order-based treatment limits, but may not remove, their impact.
+\end{itemize}
+Before deployment, the frozen procedure should be refit on all 6,819 firms and validated on more recent data.
+
+% =====================================================================
+\section{Reproducibility}
+% =====================================================================
+All results come from a single notebook, \texttt{src/bankruptcy\_prediction.ipynb}, executed top to bottom with fixed seeds (\texttt{SEED = 42}); it runs in about 4.5 minutes with Python 3.12 and the pinned versions of \texttt{requirements.txt} (scikit-learn 1.9.1, pandas 3.0.6). The notebook stops with an explicit message if scikit-learn is older than 1.8, because earlier versions silently replace the L1 penalty. A script, \texttt{slides/make\_figures.py}, exports the figures of this report from that same notebook.
+\begin{lstlisting}[language=bash, aboveskip=4pt]
+uv venv --python 3.12 && uv pip install -r requirements.txt
+.venv/bin/jupyter nbconvert --to notebook --execute --inplace \
+    src/bankruptcy_prediction.ipynb
+\end{lstlisting}
+
+% =====================================================================
+\begin{thebibliography}{9}\footnotesize\setlength{\itemsep}{0.5pt}
+\bibitem{uci} UCI Machine Learning Repository (2020). \emph{Taiwanese Bankruptcy Prediction}. doi:\href{https://doi.org/10.24432/C5004D}{10.24432/C5004D}.
+\bibitem{liang} D.~Liang, C.-C.~Lu, C.-F.~Tsai and G.-A.~Shih (2016). Financial ratios and corporate governance indicators in bankruptcy prediction: a comprehensive study. \emph{European Journal of Operational Research}, 252(2), 561–572.
+\bibitem{sklearn} F.~Pedregosa et al. (2011). Scikit-learn: machine learning in Python. \emph{Journal of Machine Learning Research}, 12, 2825–2830.
+\bibitem{course} Augmented Decision, lecture decks 1–4: decision theory, statistical learning, decision trees, variable selection and regularization.
+\end{thebibliography}
+
+% ---------------------------------------------------------------------
+% Appendix: LLM use disclosure (to be completed by the authors).
+% \appendix
+% \section{LLM use disclosure}
+% ---------------------------------------------------------------------
+
+\end{document}

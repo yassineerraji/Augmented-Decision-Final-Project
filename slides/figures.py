@@ -15,7 +15,7 @@ RISK, MODEL, GREY, GREY_LIGHT = "#B42318", "#155E63", "#A39E93", "#CFC9BD"
 
 mpl.rcdefaults()
 mpl.rcParams.update({
-    "font.family": "IBM Plex Sans", "font.size": 9, "text.color": INK, "axes.labelcolor": INK, "axes.edgecolor": MUTED,
+    "font.family": os.environ.get("FIG_FONT", "Arial"), "font.size": 9, "text.color": INK, "axes.labelcolor": INK, "axes.edgecolor": MUTED,
     "xtick.color": MUTED, "ytick.color": MUTED, "axes.spines.top": False, "axes.spines.right": False,
     "axes.grid": True, "grid.color": RULE, "grid.linewidth": 0.6, "axes.axisbelow": True,
     "axes.facecolor": "none", "figure.facecolor": "none", "savefig.transparent": True,

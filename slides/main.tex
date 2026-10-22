@@ -1,20 +1,21 @@
 % =====================================================================
 %  Taiwanese Bankruptcy Prediction — final presentation (Augmented Decision)
 %  Compile from this folder:   tectonic main.tex      (or: xelatex main.tex, twice)
-%  Figures in figures/ are exported from the notebook by make_figures.py
+%  Set in Arial (system font). Figures in figures/ are exported from the notebook by make_figures.py
 % =====================================================================
 \documentclass[11pt,aspectratio=169]{beamer}
 
-% ---------- Fonts: IBM Plex (shipped with TeX Live and Tectonic) ----------
+% ---------- Fonts: Arial everywhere (system font) ----------
 \usepackage{fontspec}
-\setsansfont{IBMPlexSans}[Extension=.otf, UprightFont=*-Regular, BoldFont=*-SemiBold, ItalicFont=*-Italic, BoldItalicFont=*-SemiBoldItalic]
-\setmonofont{IBMPlexMono}[Extension=.otf, UprightFont=*-Regular, BoldFont=*-SemiBold, Scale=0.9]
-\newfontfamily\display{IBMPlexSerif}[Extension=.otf, UprightFont=*-Regular, BoldFont=*-SemiBold, ItalicFont=*-Italic]
-\newfontfamily\light{IBMPlexSans}[Extension=.otf, UprightFont=*-Light]
+\setsansfont{Arial}
+\setmonofont{Arial}
+\newfontfamily\display{Arial}
+\newfontfamily\light{Arial}
 \usefonttheme{professionalfonts}
 \hyphenpenalty=10000 \exhyphenpenalty=10000   % no hyphenation anywhere on the slides
 
 \usepackage{amsmath, amssymb, booktabs, graphicx}
+\graphicspath{{figures/}}
 \usepackage{tikz, pgfplots}
 \usetikzlibrary{positioning, arrows.meta, calc}
 \pgfplotsset{compat=1.18}
@@ -249,7 +250,7 @@
   \vspace{1mm}
   \begin{columns}[c,onlytextwidth]
     \column{0.52\textwidth}\centering
-      \includegraphics{figures/heatmap.pdf}
+      \includegraphics{heatmap.pdf}
     \column{0.44\textwidth}
       \stat[risk]{50 pairs}{of ratios with $|\rho| > 0.95$, involving 47 of the 94 ratios}\par\vspace{5mm}
       \aside{Spearman correlation: it captures a ratio and its inverse, and ignores extreme magnitudes.}\par\vspace{5mm}
@@ -312,13 +313,13 @@
 
 \begin{frame}{Choosing the penalty}
   \vspace{2mm}\centering
-  \includegraphics{figures/lasso_path.pdf}\par\vspace{4mm}\raggedright
+  \includegraphics{lasso_path.pdf}\par\vspace{4mm}\raggedright
   \takeaway{Lowest cross-validated log-loss at $C \approx 0.18$: 43 of the 94 ratios are kept.}
 \end{frame}
 
 \begin{frame}{Is the shortlist stable?}
   \vspace{2mm}\centering
-  \includegraphics{figures/stability.pdf}\par\vspace{3mm}\raggedright
+  \includegraphics{stability.pdf}\par\vspace{3mm}\raggedright
   \aside{100 bootstrap refits of the whole procedure. Only 15 of the 43 ratios survive at least 80\,\% of the time.}\par\vspace{2mm}
   \takeaway{Correlated ratios swap places: a predictive shortlist, not a list of causes.}
 \end{frame}
@@ -372,14 +373,14 @@
 
 \begin{frame}{Leaves must be large}
   \vspace{2mm}\centering
-  \includegraphics{figures/validation.pdf}\par\vspace{2mm}\raggedright
+  \includegraphics{validation.pdf}\par\vspace{2mm}\raggedright
   \aside{Leaves of one firm memorise the data: training cost falls to 0, CV cost climbs to 0.23.}\par\vspace{1.5mm}
   \takeaway{With at least 120 firms per leaf, depth 4 is best: 0.151 per firm.}
 \end{frame}
 
 \begin{frame}{Four candidates, same five folds}
   \vspace{3mm}\centering
-  \includegraphics{figures/candidates.pdf}\par\vspace{4mm}\raggedright
+  \includegraphics{candidates.pdf}\par\vspace{4mm}\raggedright
   \takeaway{Every tree halves the cost of never flagging.}
 \end{frame}
 
@@ -400,7 +401,7 @@
       \end{tabular}}\par\vspace{4mm}
       \takeaway{Selection helps. We keep M2.}
     \column{0.36\textwidth}\centering
-      \includegraphics[width=\linewidth]{figures/paired.pdf}
+      \includegraphics[width=\linewidth]{paired.pdf}
   \end{columns}
 \end{frame}
 
@@ -505,7 +506,7 @@
 
 \begin{frame}{Is the gain real?}
   \vspace{2mm}\centering
-  \includegraphics{figures/bootstrap.pdf}\par\vspace{2mm}\raggedright
+  \includegraphics{bootstrap.pdf}\par\vspace{2mm}\raggedright
   \begin{columns}[T,onlytextwidth]
     \column{0.47\textwidth}
       \aside{Hoeffding (Lecture 2): too wide to decide}\par\vspace{1mm}
@@ -521,7 +522,7 @@
   \vspace{1mm}
   \begin{columns}[c,onlytextwidth]
     \column{0.66\textwidth}\centering
-      \includegraphics[width=\linewidth]{figures/switching.pdf}
+      \includegraphics[width=\linewidth]{switching.pdf}
     \column{0.30\textwidth}
       A leaf is flagged once the cost ratio exceeds\par\vspace{2mm}
       \keyformula{$\displaystyle r^* = \frac{1-\hat\eta}{\hat\eta}$}\par\vspace{4mm}
