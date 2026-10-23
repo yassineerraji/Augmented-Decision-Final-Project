@@ -95,7 +95,7 @@
 {\color{risk}\caps{AUGMENTED DECISION \quad·\quad FINAL PROJECT REPORT}}\par\vspace{5mm}
 {\fontsize{25}{30}\selectfont Flagging bankruptcy \textit{before} it happens}\par\vspace{3mm}
 {\sffamily\large\color{muted} Cost-sensitive screening of Taiwanese firms\\ with LASSO selection and a decision tree}\par\vspace{5mm}
-{\sffamily\bfseries Yassine ERRAJI \enspace·\enspace William PELTIER \enspace·\enspace Ben DAESH \enspace·\enspace Simon AMAR}\par\vspace{1mm}
+{\sffamily\bfseries Yassine ERRAJI \enspace·\enspace William PELTIER \enspace·\enspace Ben DAESCH \enspace·\enspace Simon AMAR}\par\vspace{1mm}
 {\sffamily\small\color{muted} 23 October 2026 \enspace·\enspace Code: \href{https://github.com/yassineerraji/Augmented-Decision-Final-Project}{github.com/yassineerraji/Augmented-Decision-Final-Project}}\par\vspace{5mm}
 
 \noindent\begin{tikzpicture}
@@ -108,7 +108,7 @@
 \section{Problem formulation}
 % =====================================================================
 
-\paragraph{Decision and target} A credit analyst reviews a listed firm and chooses between two actions: \emph{flag} it as high-risk (deny or reprice credit, open a closer review) or \emph{do not flag} it. The target is $Y = $ \texttt{Bankrupt?}, equal to 1 if the firm went bankrupt under the Taiwan Stock Exchange rules. The inputs $x$ are 95 financial ratios, assumed to be known before the outcome.
+\paragraph{Decision and target} A credit analyst reviews a listed firm and chooses between two actions: \emph{flag} it as high-risk (deny or reprice credit, open a closer review) or \emph{do not flag} it. The target is $Y = $ \texttt{Bankrupt?}, equal to 1 if the firm went bankrupt under the Taiwan Stock Exchange rules. The inputs $x$ are 95 financial ratios, each one accounting figure divided by another (for example total debt / net worth, net income / total assets or cash / total assets), assumed to be known before the outcome; two of them are in fact 0/1 flags.
 
 \paragraph{Loss and decision rule} The two possible errors do not cost the same (Table~\ref{tab:loss}). With $p = P(Y=1 \mid x)$, flagging has expected cost $C_{FP}(1-p)$ and not flagging $C_{FN}\,p$, so the Bayes decision rule (Lecture~1) flags a firm when
 \begin{equation}\label{eq:bayes}
@@ -141,7 +141,7 @@ Accuracy is unsuitable: the majority-class rule ``never flag'' is 96.8\,\% accur
   \begin{tabularx}{0.86\linewidth}{lX}
     \toprule
     Observations & 6,819 listed Taiwanese firms, 1999–2009 \\
-    Variables & 95 financial ratios (one, \texttt{Net Income Flag}, is constant and is dropped: 94 remain) \\
+    Variables & 95 financial ratios (two are 0/1 flags; one of these, \texttt{Net Income Flag}, is constant and is dropped: 94 remain) \\
     Target distribution & 220 bankrupt firms (3.2\,\%), 6,599 healthy firms \\
     Missing values, duplicates & none, none \\
     Preprocessing required & drop the constant column; handle 24 ratios with extreme values (Section~\ref{sec:preproc}) \\
@@ -194,9 +194,9 @@ For a binary outcome, the LASSO of Lecture~4 becomes an L1-penalised logistic re
   \min_{b_0,\,\beta}\; -\frac{1}{n}\sum_{i=1}^{n}\Big[y_i\log p_i + (1-y_i)\log(1-p_i)\Big] + \lambda\lVert\beta\rVert_1,
   \qquad p_i = \frac{1}{1+e^{-(b_0 + x_i^\top\beta)}} .
 \end{equation}
-The L1 penalty sets many coefficients exactly to zero; the corresponding ratios are dropped. In scikit-learn the penalty is set through $C = 1/(n\lambda)$. We prefer the LASSO to forward selection (Lecture~3.2) because a single parameter controls the number of variables, it copes with the redundant ratios, and one fit takes under a second, so it can be refit inside every fold; forward selection would need up to 94 fits per added variable, repeated in every fold. The intercept is kept unpenalised as in the course (\texttt{intercept\_scaling=100} makes \texttt{liblinear}'s intercept penalty negligible), and no class weights are used: the LASSO only chooses variables, and the costs enter at the decision stage.
+The L1 penalty sets many coefficients exactly to zero; the corresponding ratios are dropped. In scikit-learn the penalty is set through its inverse, $C = 1/(n\lambda)$: a smaller $C$ means a stronger penalty and fewer ratios. We prefer the LASSO to forward selection (Lecture~3.2) because a single parameter controls the number of variables, it copes with the redundant ratios, and one fit takes under a second, so it can be refit inside every fold; forward selection would need up to 94 fits per added variable, repeated in every fold. The intercept is kept unpenalised as in the course (\texttt{intercept\_scaling=100} makes \texttt{liblinear}'s intercept penalty negligible), and no class weights are used: the LASSO only chooses variables, and the costs enter at the decision stage.
 
-\paragraph{Penalty} $C$ is chosen by 5-fold cross-validation on the training set, minimising the log-loss, a proper scoring rule and the classification counterpart of the validation MSE used in the course, over 13 values from $10^{-3}$ to $1$ (Code~\ref{lst:lasso}). The minimum, $C \approx 0.178$, keeps \textbf{43 of the 94 ratios}, with a CV log-loss of 0.0855 against 0.143 with no variable (Figure~\ref{fig:lasso}). The curve is flat: every $C$ from 0.056 (21 ratios) to 0.562 (59 ratios) is within one standard error of the minimum.
+\paragraph{Penalty} $C$ is chosen by 5-fold cross-validation on the training set, minimising the log-loss, a proper scoring rule and the classification counterpart of the validation MSE used in the course, over 13 values from $10^{-3}$ to $1$ (Code~\ref{lst:lasso}). The minimum, $C \approx 0.178$ ($\lambda \approx 0.001$ in Equation~\eqref{eq:lasso}), keeps \textbf{43 of the 94 ratios}, with a CV log-loss of 0.0855 against 0.143 with no variable (Figure~\ref{fig:lasso}). The curve is flat: every $C$ from 0.056 (21 ratios) to 0.562 (59 ratios) is within one standard error of the minimum.
 
 \begin{lstlisting}[float=htbp, caption={LASSO pipeline and choice of the penalty (notebook, Sections 2.1–2.2).}, label={lst:lasso}]
 lasso = make_pipeline(QuantileTransformer(output_distribution="normal"),
@@ -213,7 +213,7 @@ lasso_cv = GridSearchCV(lasso, {"logisticregression__C": C_grid}, cv=cv,
   \caption{Choice of the LASSO penalty. Left: cross-validated log-loss (mean $\pm$ 1 SE). Right: number of ratios kept when refit on the full training set. Dashed line: chosen $C \approx 0.18$.}\label{fig:lasso}
 \end{figure}
 
-\paragraph{What is selected, and how stable it is} The leading coefficients (Table~\ref{tab:coef}) cover leverage, profitability and liquidity, with intuitive signs: more debt raises the predicted risk, more profit and liquidity lower it. Following Lecture~4, we refit the whole procedure on 100 stratified bootstrap resamples of the training set (Figure~\ref{fig:stability}). Only 15 of the 43 selected ratios are kept in at least 80\,\% of the resamples, and some ratios left out are often selected, such as the R\&D expense rate (81\,\%): correlated ratios swap places. The selected set is a good predictive shortlist, not a list of causes.
+\paragraph{What is selected, and how stable it is} The leading coefficients (Table~\ref{tab:coef}) cover leverage, profitability and liquidity, with intuitive signs: more debt raises the predicted risk, more profit and liquidity lower it. Following Lecture~4, we refit the whole procedure, with $C$ fixed, on 100 stratified bootstrap resamples of the training set (Figure~\ref{fig:stability}). Each resample draws 5,455 firms from the training set with replacement, so some firms appear several times and others not at all, which mimics drawing another sample of firms. Only 15 of the 43 selected ratios are kept in at least 80\,\% of the resamples, and some ratios left out are often selected, such as the R\&D expense rate (81\,\%): near-duplicate ratios replace each other from one resample to the next, so the exact list depends on the sample. The selected set is a good predictive shortlist, not a list of causes.
 
 \begin{table}[htbp]\centering\tablefont
   \caption{The eight largest LASSO coefficients at $C \approx 0.178$ (quantile-normal scale, so magnitudes are comparable).}\label{tab:coef}
@@ -376,7 +376,7 @@ boot_costs = pd.DataFrame(
       "Baseline": avg_cost(y_test.values[i], y_base[i])} for i in boot])
 \end{lstlisting}
 
-\paragraph{Uncertainty} With a loss bounded in $[0, C_{FN}]$ and $m = 1{,}364$ test firms, Lecture~2's Hoeffding bound gives a 95\,\% half-width of $C_{FN}\sqrt{\log(2/\alpha)/(2m)} = 0.37$, wider than the gap between the two rules: valid, but uninformative. We therefore use a 95\,\% percentile bootstrap over the test firms, with the predictions fixed and without stratification, so that the number of bankruptcies varies as in a new sample (Figure~\ref{fig:bootstrap}). The paired difference lies in $[-0.228, -0.065]$, entirely below zero: the model's advantage is not an artefact of this test set. The test cost is higher than the CV estimate (0.151), which nevertheless lies inside the model's interval; the gap is expected, since the test cost is noisy with only 44 bankruptcies and the CV cost of the chosen configuration, the best of 56, is slightly optimistic.
+\paragraph{Uncertainty} With a loss bounded in $[0, C_{FN}]$ and $m = 1{,}364$ test firms, Lecture~2's Hoeffding bound gives a 95\,\% half-width of $C_{FN}\sqrt{\log(2/\alpha)/(2m)} = 0.37$ on each cost, wider than the 0.144 gap between the two rules: the two ranges overlap almost entirely, so the bound cannot tell which rule is better. It is valid but uninformative, because it must hold for any distribution of costs in $[0, 10]$, including the worst case where half the firms cost 10, whereas about nine firms in ten cost nothing here. We therefore use a 95\,\% percentile bootstrap, which measures the actual spread of the costs: 1,000 resamples of the 1,364 test firms drawn with replacement, with the predictions fixed (nothing is refit) and without stratification, so that the number of bankruptcies varies as in a new sample. On each resample both costs and their difference are recomputed, and each interval keeps the middle 95\,\% of the 1,000 values (Figure~\ref{fig:bootstrap}). Because both rules face the same resampled firms, the luck of the draw largely cancels in their difference, which lies in $[-0.228, -0.065]$, entirely below zero: the model's advantage is not an artefact of this test set. The test cost is higher than the CV estimate (0.151), which nevertheless lies inside the model's interval; the gap is expected, since the test cost is noisy with only 44 bankruptcies and the CV cost of the chosen configuration, the best of 56, is slightly optimistic.
 
 \begin{figure}[htbp]\centering
   \includegraphics{bootstrap.pdf}
