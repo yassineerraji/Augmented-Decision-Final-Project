@@ -17,7 +17,7 @@
 \usepackage{amsmath, amssymb, booktabs, graphicx}
 \graphicspath{{figures/}}
 \usepackage{tikz, pgfplots}
-\usetikzlibrary{positioning, arrows.meta, calc}
+\usetikzlibrary{positioning, arrows.meta, calc, decorations.pathreplacing}
 \pgfplotsset{compat=1.18}
 
 % ---------- Palette ----------
@@ -68,6 +68,9 @@
 \newcommand{\takeaway}[1]{{\color{risk}\rule[0.33ex]{1.3em}{1.1pt}}\;\textbf{#1}}
 \newcommand{\keyformula}[2][risk]{\begin{tikzpicture}\node[fill=card, draw=#1, line width=0.6pt, rounded corners=2pt, inner xsep=4.5mm, inner ysep=2.8mm]{#2};\end{tikzpicture}}
 \newcommand{\aside}[1]{{\footnotesize\color{muted}#1}}
+\newcommand{\appendixfootline}[1]{\setbeamertemplate{footline}{\hspace*{10mm}{\color{muted}\caps{TAIWANESE BANKRUPTCY PREDICTION}}%
+  \hfill{\color{muted}\caps{APPENDIX #1}}\hspace*{10mm}\par\vspace*{4.5mm}}}
+\newcommand{\stepnum}[1]{\tikz[baseline=(n.base)]\node[circle, fill=risk, text=paper, inner sep=0pt, minimum size=3.6mm, font=\scriptsize\bfseries] (n) {#1};}
 \newcommand{\actioncard}[4][62mm]{%
   \begin{tikzpicture}
     \node[fill=card, draw=rule, rounded corners=2pt, text width=#1, inner xsep=4mm, inner ysep=2.6mm, align=left] (c)
@@ -219,7 +222,7 @@
       \end{tabular}\par\vspace{4mm}
       Flag when flagging is cheaper:\par\vspace{2mm}
       \keyformula{$\displaystyle p \;\ge\; \frac{C_{FP}}{C_{FP}+C_{FN}} \;=\; \frac{1}{11} \;\approx\; 0.09$}\par\vspace{1.5mm}
-      \aside{Bayes decision rule (Lecture 1).}
+      \aside{Bayes decision rule.}
     \column{0.48\textwidth}
       \begin{tikzpicture}
         \begin{axis}[width=66mm, height=52mm, xmin=0, xmax=0.3, ymin=0, ymax=3, axis lines=left,
@@ -290,12 +293,14 @@
 
 \begin{frame}{LASSO for a yes/no outcome}
   \vspace{1mm}\centering
-  \keyformula{$\displaystyle \min_{b_0,\,\beta}\;\; \underbrace{-\frac{1}{n}\sum_{i=1}^{n}\Big[y_i\log p_i + (1-y_i)\log(1-p_i)\Big]}_{\text{fit to the data}} \;+\; \underbrace{\lambda\,\lVert\beta\rVert_1}_{\text{L1 penalty}}$}\par\vspace{3mm}
+  \keyformula{$\displaystyle \begin{gathered}
+    \min_{b_0,\,\beta}\;\; \underbrace{-\frac{1}{n}\sum_{i=1}^{n}\Big[y_i\log p_i + (1-y_i)\log(1-p_i)\Big]}_{\text{fit to the data}} \;+\; \underbrace{\lambda\,\lVert\beta\rVert_1}_{\text{L1 penalty}}\\[1.5mm]
+    \text{with}\;\; p_i = \frac{1}{1+e^{-(b_0 + x_i^\top\beta)}}\,:\; \text{firm } i\text{'s predicted bankruptcy probability}
+  \end{gathered}$}\par\vspace{3mm}
   \raggedright
   \begin{points}
-    \item The L1 penalty sets many coefficients to \textbf{exactly zero}: those ratios are dropped (Lecture 4).
+    \item The L1 penalty sets many coefficients to \textbf{exactly zero}.
     \item \textbf{One knob}, $\lambda$ (or $C = 1/n\lambda$), sets how many ratios survive.
-    \item Fast enough to be \textbf{refit inside every cross-validation fold}.
   \end{points}
 \end{frame}
 
@@ -309,7 +314,7 @@
   \vspace{2mm}\centering
   \includegraphics{stability.pdf}\par\vspace{3mm}\raggedright
   \aside{100 bootstrap refits of the whole procedure. Only 15 of the 43 ratios survive at least 80\,\% of the time.}\par\vspace{2mm}
-  \takeaway{Correlated ratios swap places: a predictive shortlist, not a list of causes.}
+  \takeaway{Similar ratios replace each other, so the exact list depends on the sample.}
 \end{frame}
 
 % =====================================================================
@@ -473,7 +478,15 @@
   \vspace{3mm}
   \begin{columns}[c,onlytextwidth]
     \column{0.50\textwidth}
-      \stat[model]{0.179 \;{\color{muted}\fontsize{15}{17}\selectfont vs 0.323}}{cost per firm, model vs never flag: \textbf{$-$45\,\%}}\par\vspace{5mm}
+      {\color{muted}\caps{AVERAGE COST PER FIRM}}\par\vspace{3mm}
+      \begin{tikzpicture}[x=1mm, y=1mm]   % bars to scale: 120 mm per unit of cost
+        \node[anchor=east, font=\footnotesize, text=muted] at (-2,6) {never flag};
+        \fill[rule] (0,3.5) rectangle (38.76,8.5);
+        \node[anchor=west, font=\footnotesize, text=muted] at (40,6) {0.323};
+        \node[anchor=east, font=\footnotesize\bfseries] at (-2,0) {our model};
+        \fill[model] (0,-2.5) rectangle (21.48,2.5);
+        \node[anchor=west, font=\footnotesize] at (22.7,0) {\textbf{0.179}\quad{\normalsize\color{model}\bfseries $-$45\,\%}};
+      \end{tikzpicture}\par\vspace{7mm}
       \begin{columns}[T,onlytextwidth]
         \column{0.5\linewidth}\stat{32 / 44}{bankruptcies caught}
         \column{0.5\linewidth}\stat{156}{firms flagged (1 in 9)}
@@ -497,11 +510,11 @@
   \includegraphics{bootstrap.pdf}\par\vspace{2mm}\raggedright
   \begin{columns}[T,onlytextwidth]
     \column{0.47\textwidth}
-      \aside{Hoeffding (Lecture 2): too wide to decide}\par\vspace{1mm}
-      $\pm\, C_{FN}\sqrt{\log(2/\alpha)\,/\,2m} \,=\, \pm\,0.37$
+      {\color{muted}\caps{HOEFFDING \quad·\quad WORST CASE}}\par\vspace{1.5mm}
+      $\pm\,0.37$, wider than the 0.144 gap
     \column{0.47\textwidth}
-      \aside{Bootstrap, 1,000 resamples of the test firms:}\par\vspace{1mm}
-      gain in $[0.065,\; 0.228]$ per firm
+      {\color{muted}\caps{BOOTSTRAP \quad·\quad OUR DATA}}\par\vspace{1.5mm}
+      gain between 0.065 and 0.228 per firm
   \end{columns}\par\vspace{3mm}
   \takeaway{The interval excludes 0: the model really beats not screening.}
 \end{frame}
@@ -521,33 +534,16 @@
 
 \setkicker{RECOMMENDATION}
 \begin{frame}{Our recommendation}
-  \vspace{4mm}
+  \vspace{5mm}
   \begin{columns}[T,onlytextwidth]
-    \column{0.47\textwidth}
-      \actioncard[60mm]{risk}{1 \quad Action}{Flag every firm whose leaf has a bankruptcy share of at least 1/11: 8 ratios, a depth-4 tree.}\par\vspace{2.5mm}
-      \actioncard[60mm]{ink}{2 \quad Assumptions}{A missed bankruptcy costs 10 false alarms; leaf shares are taken as probabilities.}
-    \column{0.47\textwidth}
-      \actioncard[60mm]{model}{3 \quad Versus no screening}{0.179 vs 0.323 per firm: 32 of 44 bankruptcies caught for 124 false alarms.}\par\vspace{2.5mm}
-      \actioncard[60mm]{bench}{4 \quad What would change it}{A cost ratio below 9.75 unflags two leaves; below 7.6, a third.}
-  \end{columns}
-\end{frame}
-
-\setkicker{LIMITATIONS}
-\begin{frame}{What to keep in mind}
-  \vspace{4mm}
-  \begin{columns}[T,onlytextwidth]
-    \column{0.47\textwidth}
-      \begin{points}
-        \item \textbf{Assumed costs.} The 10 : 1 ratio is stipulated.
-        \item \textbf{No time dimension.} A random split, not a forecast of future years.
-        \item \textbf{Repeated firms?} The same firm may appear in several years.
-      \end{points}
-    \column{0.47\textwidth}
-      \begin{points}
-        \item \textbf{Few bankruptcies.} 176 in training, 44 in the test set.
-        \item \textbf{Fragile leaves.} Two leaves sit 0.002 above the threshold, within noise ($\pm 0.026$).
-        \item \textbf{Unstable shortlist.} A 7-ratio selection works about as well.
-      \end{points}
+    \column{0.52\textwidth}
+      {\color{risk}\caps{ACTION}}\par\vspace{3mm}
+      {\display\fontsize{19}{24}\selectfont Flag every firm whose leaf has a bankruptcy share of at least 1/11.}\par\vspace{4mm}
+      {\color{muted}8 ratios, a depth-4 tree: every flag comes with a rule the analyst can read.}
+    \column{0.42\textwidth}
+      \caps{UNDER TWO ASSUMPTIONS}\par\vspace{3mm}
+      \actioncard[48mm]{ink}{Costs}{A missed bankruptcy costs as much as 10 false alarms.}\par\vspace{2.5mm}
+      \actioncard[48mm]{ink}{Probabilities}{A leaf's bankruptcy share is taken as a probability.}
   \end{columns}
 \end{frame}
 
@@ -569,6 +565,100 @@
       {{\ttfamily\scriptsize\color{paper!75!ink}github.com/yassineerraji/Augmented-Decision-Final-Project}\\[2.5mm]
        {\color{paper!55!ink}\caps{YASSINE ERRAJI \enspace·\enspace WILLIAM PELTIER \enspace·\enspace BEN DAESH \enspace·\enspace SIMON AMAR}}};
   \end{tikzpicture}
+\end{frame}}
+
+% =====================================================================
+%  APPENDIX (after the closing slide, not counted in the slide numbers)
+% =====================================================================
+{\appendixfootline{A1}
+\setkicker{APPENDIX \quad·\quad LIMITATIONS}
+\begin{frame}[noframenumbering]{What to keep in mind}
+  \vspace{4mm}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.47\textwidth}
+      \begin{points}
+        \item \textbf{Assumed costs.} The 10 : 1 ratio is stipulated.
+        \item \textbf{No time dimension.} A random split, not a forecast of future years.
+        \item \textbf{Repeated firms?} The same firm may appear in several years.
+      \end{points}
+    \column{0.47\textwidth}
+      \begin{points}
+        \item \textbf{Few bankruptcies.} 176 in training, 44 in the test set.
+        \item \textbf{Fragile leaves.} Two leaves sit 0.002 above the threshold, within noise ($\pm 0.026$).
+        \item \textbf{Unstable shortlist.} A 7-ratio selection works about as well.
+      \end{points}
+  \end{columns}
+\end{frame}}
+
+{\appendixfootline{A2}
+\setkicker{APPENDIX \quad·\quad BOOTSTRAP}
+\begin{frame}[noframenumbering]{What is the bootstrap?}
+  \centering
+  \begin{tikzpicture}[x=1mm, y=1mm,
+      firm/.style={circle, draw=muted, fill=card, line width=0.5pt, minimum size=3.8mm, inner sep=0, font=\scriptsize},
+      head/.style={anchor=south, text=muted},
+      stepbox/.style={anchor=north, align=center, font=\scriptsize},
+      arr/.style={-{Stealth[length=2mm]}, muted, line width=0.8pt}]
+    % the three steps, in one row above the schema
+    \node[stepbox] at (34.25,28.5) {\stepnum{1}\enspace{\footnotesize\bfseries Draw 5 firms}\\[0.8mm]{\color{muted}with replacement:}\\{\color{muted}some twice, some left out}};
+    \node[stepbox] at (80.25,28.5) {\stepnum{2}\enspace{\footnotesize\bfseries Recompute}\\[0.8mm]{\color{muted}the LASSO (slide 13)}\\{\color{muted}or the test cost (slide 23)}};
+    \node[stepbox] at (115.5,28.5) {\stepnum{3}\enspace{\footnotesize\bfseries Repeat many times}\\[0.8mm]{\color{muted}the spread of the results}\\{\color{muted}shows the role of luck}};
+    % our sample: 5 firms
+    \node[head] at (9.8,9) {\caps{OUR SAMPLE}};
+    \foreach \l [count=\i] in {A,B,C,D,E} \node[firm, draw=ink] at ({(\i-1)*4.9},0) {\l};
+    \draw[arr] (23.5,0) -- (45,0);
+    % resamples of the same size
+    \node[head] at (57.8,9) {\caps{RESAMPLES}};
+    \foreach \l [count=\i] in {A,A,C,D,D} \node[firm] at ({48+(\i-1)*4.9},6) {\l};
+    \foreach \l [count=\i] in {B,C,C,E,E} \node[firm] at ({48+(\i-1)*4.9},0) {\l};
+    \foreach \l [count=\i] in {A,B,D,E,E} \node[firm] at ({48+(\i-1)*4.9},-6) {\l};
+    \node[text=muted, inner sep=0] at (57.8,-10.5) {$\vdots$};
+    % one result per resample
+    \foreach \y in {6,0,-6} \draw[arr] (71.5,\y) -- (89,\y);
+    \node[head] at (96.5,9) {\caps{RESULTS}};
+    \foreach \y/\k in {6/1, 0/2, -6/3} \node[font=\scriptsize, anchor=west] at (90,\y) {result \k};
+    \node[text=muted, inner sep=0] at (97,-10.5) {$\vdots$};
+    % their spread
+    \draw[decorate, decoration={brace, amplitude=1.5mm}, muted, line width=0.6pt] (106,8) -- (106,-12);
+    \node[font=\scriptsize, anchor=west] at (109,-2) {spread};
+  \end{tikzpicture}\par\vspace{8mm}
+  \raggedright
+  \takeaway{We cannot collect new samples, so we draw them from the one we have.}
+\end{frame}}
+
+{\appendixfootline{A3}
+\setkicker{APPENDIX \quad·\quad HOEFFDING}
+\begin{frame}[noframenumbering]{Why is Hoeffding too wide?}
+  \vspace{1mm}
+  \begin{columns}[c,onlytextwidth]
+    \column{0.60\textwidth}
+      \keyformula{$\pm\, C_{FN}\sqrt{\log(2/\alpha)\,/\,2m} \;=\; \pm\,0.37$}
+    \column{0.36\textwidth}
+      {\footnotesize\color{muted}$C_{FN} = 10$: the highest cost of a firm\\[0.5mm]
+       $\alpha = 5\,\%$: the accepted risk of error\\[0.5mm]
+       $m = 1{,}364$: the number of test firms}
+  \end{columns}\par\vspace{3mm}
+  \centering
+  \begin{tikzpicture}[x=1mm, y=1mm,   % cost axis: 140 mm per unit of cost
+      bar/.style={line width=2mm},
+      lab/.style={anchor=east, font=\scriptsize},
+      grp/.style={anchor=south west, inner sep=0.6mm, xshift=-0.6mm, fill=paper, font=\scriptsize, text=muted}]
+    \foreach \x in {0,14,...,98} \draw[rule, line width=0.3pt] (\x,-9) -- (\x,17);
+    % Hoeffding: 0.179 and 0.323, each +/- 0.37 (cut at 0)
+    \node[grp] at (0,14) {\caps{HOEFFDING}\quad the two ranges overlap: cannot decide};
+    \node[lab] at (-2,11) {model};      \draw[bar, model!35] (0,11) -- (76.6,11);  \fill[model] (25.1,11) circle (1.1);
+    \node[lab] at (-2,7) {never flag};  \draw[bar, rule] (0,7) -- (96.6,7);        \fill[muted] (45.2,7) circle (1.1);
+    % Bootstrap: 95 % percentile intervals of slide 23
+    \node[grp] at (0,1.5) {\caps{BOOTSTRAP}\quad much narrower: the gain is 0.065 to 0.228};
+    \node[lab] at (-2,-1.5) {model};      \draw[bar, model!35] (18.8,-1.5) -- (32.6,-1.5); \fill[model] (25.1,-1.5) circle (1.1);
+    \node[lab] at (-2,-5.5) {never flag}; \draw[bar, rule] (32.9,-5.5) -- (58.5,-5.5);     \fill[muted] (45.2,-5.5) circle (1.1);
+    % cost axis
+    \draw[muted] (0,-9) -- (98,-9);
+    \foreach \x/\l in {0/0, 14/0.1, 28/0.2, 42/0.3, 56/0.4, 70/0.5, 84/0.6, 98/0.7}
+      \node[font=\scriptsize, text=muted, anchor=north] at (\x,-9.5) {\l};
+    \node[font=\scriptsize, text=muted, anchor=west] at (101,-11.4) {cost per firm};
+  \end{tikzpicture}\par\vspace{4mm}\raggedright
+  \takeaway{It plans for half the firms costing 10. In reality, 9 firms in 10 cost 0.}
 \end{frame}}
 
 \end{document}
