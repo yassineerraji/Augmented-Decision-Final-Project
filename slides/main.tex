@@ -157,16 +157,23 @@
 \setkicker{01 \quad·\quad PROBLEM FORMULATION}
 
 \begin{frame}{The data}
-  \vspace{9mm}
+  \vspace{0.5mm}
   \begin{columns}[T,onlytextwidth]
     \column{0.22\textwidth}\stat{6,819}{listed Taiwanese firms}
-    \column{0.17\textwidth}\stat{95}{financial ratios per firm}
+    \column{0.17\textwidth}\stat{94}{financial ratios per firm}
     \column{0.30\textwidth}\stat{11 years}{1999–2009, Taiwan Economic Journal}
     \column{0.24\textwidth}\stat[risk]{3.2\,\%}{went bankrupt (220 firms)}
+  \end{columns}\par\vspace{4mm}
+  {\color{rule}\rule{\linewidth}{0.6pt}}\par\vspace{2.5mm}
+  {\color{risk}\caps{WHY RATIOS?}}\par\vspace{1.5mm}
+  Each variable is a \textbf{financial ratio}: one accounting figure divided by another.\par\vspace{2.5mm}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.30\textwidth}{\small\bfseries Debt / net worth}\par{\footnotesize\color{muted}borrowed vs owned}
+    \column{0.33\textwidth}{\small\bfseries Net income / total assets}\par{\footnotesize\color{muted}profit made with its assets}
+    \column{0.33\textwidth}{\small\bfseries Cash / total assets}\par{\footnotesize\color{muted}share of its assets held as cash}
   \end{columns}
-  \vfill
-  \aside{Source: UCI Machine Learning Repository, \emph{Taiwanese Bankruptcy Prediction}, doi:10.24432/C5004D.}
-  \vspace{3mm}
+  \par\vspace{3mm}
+  {\scriptsize\color{muted}Source: UCI Machine Learning Repository, \emph{Taiwanese Bankruptcy Prediction}, doi:10.24432/C5004D.}
 \end{frame}
 
 \begin{frame}{Accuracy is a trap}
@@ -263,13 +270,13 @@
   \begin{tikzpicture}[node distance=4.2mm, box/.style={draw=rule, fill=card, rounded corners=2pt, align=center, text width=21.5mm,
                       minimum height=19mm, inner sep=1.5mm, font=\footnotesize}, arr/.style={-{Stealth[length=2mm]}, muted, line width=0.8pt}]
     \node[box] (a) {\textbf{94 ratios}\\[1mm]{\scriptsize\color{muted}6,819 firms}};
-    \node[box, right=of a] (b) {\textbf{LASSO}\\[1mm]{\scriptsize\color{muted}quantile transform\\L1 logistic, $C \approx 0.18$}};
-    \node[box, right=of b] (c) {\textbf{43 ratios}\\[1mm]{\scriptsize\color{muted}raw values}};
-    \node[box, right=of c, draw=model, line width=0.7pt] (d) {\textbf{Decision tree}\\[1mm]{\scriptsize\color{muted}depth 4\\$\ge 120$ firms per leaf}};
+    \node[box, right=of a] (b) {\textbf{LASSO}\\[1mm]{\scriptsize\color{muted}quantile transform\\L1 logistic}};
+    \node[box, right=of b] (c) {\textbf{Fewer ratios}};
+    \node[box, right=of c, draw=model, line width=0.7pt] (d) {\textbf{Decision tree}};
     \node[box, right=of d, fill=risk, draw=risk, text=paper] (e) {\textbf{Flag}\\[1mm]{\scriptsize if the leaf's share\\of bankruptcies $\ge 1/11$}};
     \foreach \u/\v in {a/b, b/c, c/d, d/e} \draw[arr] (\u) -- (\v);
-    \node[below=3mm of b, font=\scriptsize, text=muted] {Step 2};
-    \node[below=3mm of d, font=\scriptsize, text=muted] {Step 3};
+    \node[anchor=north, font=\scriptsize, text=muted] at ([yshift=-3mm]b |- e.south) {Step 2};
+    \node[anchor=north, font=\scriptsize, text=muted] at ([yshift=-3mm]d |- e.south) {Step 3};
     \node[below=3mm of e, font=\scriptsize, text=muted] {Step 1 rule};
   \end{tikzpicture}\par\vspace{10mm}\raggedright
   \takeaway{Everything is fitted on the training set. The test set is opened once.}
