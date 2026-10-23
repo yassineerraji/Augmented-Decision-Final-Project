@@ -28,14 +28,34 @@ Under this loss table, the optimal decision rule flags a firm when its estimated
 
 ## Method
 
-```
-94 financial ratios
-   │  quantile transform + L1-penalised logistic regression (LASSO, C ≈ 0.18, chosen by CV log-loss)
-   ▼
-43 selected ratios (raw values)
-   │  decision tree: depth 4, at least 120 firms per leaf (tuned by 5-fold CV on decision cost)
-   ▼
-share of bankrupt firms in the leaf  →  flag the firm if it is ≥ 1/11
+```mermaid
+flowchart TD
+    A["<b>94 financial ratios</b><br/>6,819 firms, 5,455 used for training"]
+
+    subgraph CV["Refit inside every cross-validation fold"]
+        direction TB
+        B["<b>Quantile transform</b><br/>ranks to normal scores, so extreme values cannot dominate"]
+        C["<b>LASSO</b>: L1-penalised logistic regression<br/>C ≈ 0.18, chosen by CV log-loss"]
+        D["<b>43 selected ratios</b><br/>passed on with their raw values"]
+        E["<b>Decision tree</b><br/>depth 4, at least 120 firms per leaf<br/>tuned by 5-fold CV on decision cost"]
+        B --> C --> D --> E
+    end
+
+    A --> B
+    E --> F["<b>Share of bankrupt firms in the firm's leaf</b><br/>= estimated probability of bankruptcy"]
+    F --> G{"at least 1/11 ?"}
+    G -- yes --> H["<b>Flag</b><br/>deny or reprice credit, closer review"]
+    G -- no --> I["<b>Do not flag</b>"]
+
+    classDef data fill:#FFFEFB,stroke:#D9D2C5,color:#16181D
+    classDef step fill:#D5E5E3,stroke:#155E63,color:#16181D
+    classDef flag fill:#B42318,stroke:#B42318,color:#FFFFFF
+    classDef pass fill:#F6F3EC,stroke:#6B6F78,color:#16181D
+    class A,D,F data
+    class B,C,E step
+    class H flag
+    class I,G pass
+    style CV fill:transparent,stroke:#6B6F78,stroke-dasharray:4 3
 ```
 
 The final tree has **9 leaves and uses 8 ratios**, so every decision can be read as a short rule. Examples: weak net value growth; heavy borrowing combined with low profitability.
